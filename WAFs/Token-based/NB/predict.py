@@ -1,5 +1,4 @@
 import pickle
-from sklearn.feature_extraction.text import CountVectorizer
 
 # load model
 with open('../../../Trained_models/nb.pkl', 'rb') as f:
