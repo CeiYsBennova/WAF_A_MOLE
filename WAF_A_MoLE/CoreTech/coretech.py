@@ -1,9 +1,14 @@
-from Fuzzer import SQLiFuzzer
+import sys
+sys.path.append("/home/edward/Documents/WAF_A_MOLE/WAF_A_MoLE/Fuzzer")
 
-payload = input("Enter a payload: ")
+from sqlifuzzer import SQLiFuzzer
 
-fuzzer = SQLiFuzzer()
+payload = "admin' /**/ OR '1' = '1'#"
 
-new_payload = fuzzer.mutate()
+fuzzer = SQLiFuzzer(payload)
 
-print(new_payload)
+#mutate in 5 rounds
+for i in range(5):
+    fuzzer.mutate()
+
+print(fuzzer.payload)
