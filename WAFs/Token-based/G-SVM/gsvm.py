@@ -24,8 +24,12 @@ test_labels = test_data['Label'].values
 vectorizer = CountVectorizer()
 x = vectorizer.fit_transform(train_sentences.ravel())
 
+# save vectorizer
+with open('../../../Trained_models/GSVM/gsvm_vectorizer.pkl', 'wb') as f:
+    pickle.dump(vectorizer, f)
+''''
 # Create a SVC Classifier
-model = SVC(gamma=0.1, C=1.0)
+model = SVC(gamma=0.1, C=100.0)
 
 # Train the model using the training sets
 model.fit(x.toarray(), train_labels)
@@ -34,13 +38,10 @@ model.fit(x.toarray(), train_labels)
 with open('../../../Trained_models/GSVM/gsvm.pkl', 'wb') as f:
     pickle.dump(model, f)
 
-# save vectorizer
-with open('../../../Trained_models/GSVM/gsvm_vectorizer.pkl', 'wb') as f:
-    pickle.dump(vectorizer, f)
 
 # Predict the response for test dataset
 y_pred = model.predict(vectorizer.transform(test_sentences.ravel()).toarray())
 
 # Model Accuracy, how often is the classifier correct?
-print("Accuracy:", accuracy_score(test_labels, y_pred))
+print("Accuracy:", accuracy_score(test_labels, y_pred))'''
 
