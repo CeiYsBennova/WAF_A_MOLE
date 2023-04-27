@@ -31,11 +31,11 @@ model = GaussianNB()
 model.fit(x.toarray(), train_labels)
 
 # save model
-with open('../../../Trained_models/nb.pkl', 'wb') as f:
+with open('../../../Trained_models/NB/nb.pkl', 'wb') as f:
     pickle.dump(model, f)
 
 # save vectorizer
-with open('../../../Trained_models/nb_vectorizer.pkl', 'wb') as f:
+with open('../../../Trained_models/NB/nb_vectorizer.pkl', 'wb') as f:
     pickle.dump(vectorizer, f)
 
 
